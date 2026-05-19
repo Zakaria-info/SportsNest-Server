@@ -24,9 +24,15 @@ async function run() {
     const db = client.db("sportsnest");
     const FacilitiesCollection = db.collection("facilities");
 
+    app.get("/facilities", async (req, res) => {
+      const result = await FacilitiesCollection.find().toArray();
+      res.send(result);
+    });
+    
+
     app.post("/facilities", async (req, res) => {
       const facility = req.body;
-      console.log(facility);
+      // console.log(facility);
       const result = await FacilitiesCollection.insertOne(facility);
       res.send(result);
     });

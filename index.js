@@ -16,7 +16,7 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 async function run() {
   try {
@@ -28,7 +28,6 @@ async function run() {
       const result = await FacilitiesCollection.find().toArray();
       res.send(result);
     });
-    
 
     app.post("/facilities", async (req, res) => {
       const facility = req.body;
@@ -38,26 +37,46 @@ async function run() {
     });
 
     app.get("/facilities/:id", async (req, res) => {
-      const {id} = req.params;
+      const { id } = req.params;
       const query = { _id: new ObjectId(id) };
       const result = await FacilitiesCollection.findOne(query);
       res.send(result);
     });
 
+    app.put("/facilities/:id", async (req, res) => {
+      const { id } = req.params;
+      const updatedFacility = req.body;
 
+      const query = { _id: new ObjectId(id) };
 
+      const updateDoc = {
+        $set: updatedFacility,
+      };
 
+      const result = await FacilitiesCollection.updateOne(query, updateDoc);
+
+      res.send(result);
+    });
+
+    app.delete("/facilities/:id", async (req, res) => {
+      const { id } = req.params;
+
+      const query = { _id: new ObjectId(id) };
+
+      const result = await FacilitiesCollection.deleteOne(query);
+
+      res.send(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!",
+    );
   } finally {
     // await client.close();
   }
 }
 run().catch(console.dir);
-
-
-
 
 app.get("/", (req, res) => {
   res.send("Server is running Fine for SportsNest!");

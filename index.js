@@ -35,6 +35,21 @@ app.post("/bookings", async (req, res) => {
   res.send(result);
 });
 
+// GET USER BOOKINGS
+app.get("/bookings", async (req, res) => {
+  const email = req.query.email;
+
+  const query = {
+    user_email: email,
+  };
+
+  const result = await bookingsCollection
+    .find(query)
+    .toArray();
+
+  res.send(result);
+});
+
 
 
 

@@ -99,7 +99,7 @@ app.delete("/bookings/:id", async (req, res) => {
       res.send(result);
     });
 
-    app.post("/facilities", async (req, res) => {
+    app.post("/facilities", verifyToken, async (req, res) => {
       const facility = req.body;
       // console.log(facility);
       const result = await FacilitiesCollection.insertOne(facility);

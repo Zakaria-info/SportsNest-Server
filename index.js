@@ -23,6 +23,21 @@ async function run() {
     await client.connect();
     const db = client.db("sportsnest");
     const FacilitiesCollection = db.collection("facilities");
+    const bookingsCollection = db.collection("bookings");
+
+    // CREATE BOOKING
+app.post("/bookings", async (req, res) => {
+  const bookingData = req.body;
+
+  const result =
+    await bookingsCollection.insertOne(bookingData);
+
+  res.send(result);
+});
+
+
+
+
 
     app.get("/facilities", async (req, res) => {
       const result = await FacilitiesCollection.find().toArray();

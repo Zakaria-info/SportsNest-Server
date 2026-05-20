@@ -113,7 +113,7 @@ app.delete("/bookings/:id", async (req, res) => {
       res.send(result);
     });
 
-    app.put("/facilities/:id", async (req, res) => {
+    app.put("/facilities/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const updatedFacility = req.body;
 
@@ -128,7 +128,7 @@ app.delete("/bookings/:id", async (req, res) => {
       res.send(result);
     });
 
-    app.delete("/facilities/:id", async (req, res) => {
+    app.delete("/facilities/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
 
       const query = { _id: new ObjectId(id) };

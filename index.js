@@ -20,12 +20,19 @@ const client = new MongoClient(uri, {
   },
 });
 
-const JWKS = createRemoteJWKSet(
-  new URL(`${process.env.CLIENT_URL}/api/auth/jwks`)
-);
+const JWKS_URL = process.env.JWKS_URL || (process.env.CLIENT_URL ? `${process.env.CLIENT_URL}/api/auth/jwks` : undefined);
+let JWKS;
+if (JWKS_URL) {
+  try {
+    JWKS = createRemoteJWKSet(new URL(JWKS_URL));
+  } catch (err) {
+    console.error("Invalid JWKS URL:", JWKS_URL, err);
+  }
+} else {
+  console.warn("No JWKS URL configured (set JWKS_URL or CLIENT_URL). Auth will be disabled.");
+}
 
-
-const verifyToken = async(req, res, next) => {
+const verifyToken = async (req, res, next) => {
   const authHeader = req?.headers.authorization;
   if (!authHeader) {
     return res.status(401).send({ message: "Unauthorized Access" });
@@ -35,10 +42,15 @@ const verifyToken = async(req, res, next) => {
     return res.status(401).send({ message: "Unauthorized Access" });
   }
   try {
+    if (!JWKS) {
+      console.error('Attempt to verify token but JWKS is not configured.');
+      return res.status(500).send({ message: 'Authentication not configured on server' });
+    }
     const { payload } = await jwtVerify(token, JWKS);
-  console.log(payload);
-  next();
+    console.log('Verified token payload:', payload);
+    next();
   } catch (error) {
+    console.error('Token verification failed:', error);
     return res.status(401).send({ message: "Unauthorized Access" });
   }
 
@@ -128,7 +140,7 @@ app.delete("/bookings/:id", async (req, res) => {
       res.send(result);
     });
 
-    app.delete("/facilities/:id", verifyToken, async (req, res) => {
+    app.delete("/facilities/:id", async (req, res) => {
       const { id } = req.params;
 
       const query = { _id: new ObjectId(id) };

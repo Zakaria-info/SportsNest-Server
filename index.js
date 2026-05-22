@@ -2,7 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const { createRemoteJWKSet, jwtVerify } = require("jose-cjs");
+// const { createRemoteJWKSet, jwtVerify } = require("jose-cjs");
 dotenv.config();
 const uri = process.env.MONGODB_URI;
 
@@ -10,10 +10,8 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 const allowedOrigins = [
-  'http://localhost:3000',
+  "http://localhost:3000",
   "https://sportsnest-six.vercel.app",
-
-
 ];
 
 app.use(
@@ -22,11 +20,11 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'));
+        callback(new Error("Not allowed by CORS"));
       }
     },
     credentials: true,
-  })
+  }),
 );
 app.use(express.json());
 
@@ -38,43 +36,50 @@ const client = new MongoClient(uri, {
   },
 });
 
-const JWKS_URL = process.env.JWKS_URL || (process.env.CLIENT_URL ? `${process.env.CLIENT_URL}/api/auth/jwks` : undefined);
-let JWKS;
-if (JWKS_URL) {
-  try {
-    JWKS = createRemoteJWKSet(new URL(JWKS_URL));
-  } catch (err) {
-    console.error("Invalid JWKS URL:", JWKS_URL, err);
-  }
-} else {
-  console.warn("No JWKS URL configured (set JWKS_URL or CLIENT_URL). Auth will be disabled.");
-}
+// const JWKS_URL =
+//   process.env.JWKS_URL ||
+//   (process.env.CLIENT_URL
+//     ? `${process.env.CLIENT_URL}/api/auth/jwks`
+//     : undefined);
+// let JWKS;
+// if (JWKS_URL) {
+//   try {
+//     JWKS = createRemoteJWKSet(new URL(JWKS_URL));
+//   } catch (err) {
+//     console.error("Invalid JWKS URL:", JWKS_URL, err);
+//   }
+// } else {
+//   console.warn(
+//     "No JWKS URL configured (set JWKS_URL or CLIENT_URL). Auth will be disabled.",
+//   );
+// }
 
-const verifyToken = async (req, res, next) => {
-  const authHeader = req?.headers.authorization;
-  if (!authHeader) {
-    return res.status(401).send({ message: "Unauthorized Access" });
-  }
-  const token = authHeader?.split(" ")[1];
-  if(!token){
-    return res.status(401).send({ message: "Unauthorized Access" });
-  }
-  try {
-    if (!JWKS) {
-      console.error('Attempt to verify token but JWKS is not configured.');
-      return res.status(500).send({ message: 'Authentication not configured on server' });
-    }
-    const { payload } = await jwtVerify(token, JWKS);
-    console.log('Verified token payload:', payload);
-    next();
-  } catch (error) {
-    console.error('Token verification failed:', error);
-    return res.status(401).send({ message: "Unauthorized Access" });
-  }
-
-
-  
-}
+// const verifyToken = async (req, res, next) => {
+//   const authHeader = req?.headers.authorization;
+//   console.log("Authorization header:", authHeader);
+//   if (!authHeader) {
+//     return res.status(401).send({ message: "Unauthorized Access" });
+//   }
+//   const token = authHeader?.split(" ")[1];
+//   console.log(token);
+//   // if(!token){
+//   //   return res.status(401).send({ message: "Unauthorized Access" });
+//   // }
+//   try {
+//     if (!JWKS) {
+//       console.error("Attempt to verify token but JWKS is not configured.");
+//       return res
+//         .status(500)
+//         .send({ message: "Authentication not configured on server" });
+//     }
+//     const { payload } = await jwtVerify(token, JWKS);
+//     console.log("Verified token payload:", payload);
+//     next();
+//   } catch (error) {
+//     console.error("Token verification failed:", error);
+//     return res.status(401).send({ message: "Unauthorized Access" });
+//   }
+// };
 async function run() {
   try {
     // await client.connect();
@@ -83,67 +88,60 @@ async function run() {
     const bookingsCollection = db.collection("bookings");
 
     // CREATE BOOKING
-app.post("/bookings",async (req, res) => {
-  const bookingData = req.body;
+    app.post("/bookings", async (req, res) => {
+      const bookingData = req.body;
 
-  const result =
-    await bookingsCollection.insertOne(bookingData);
+      const result = await bookingsCollection.insertOne(bookingData);
 
-  res.send(result);
-});
+      res.send(result);
+    });
 
-// GET USER BOOKINGS
-app.get("/bookings", async (req, res) => {
-  const email = req.query.email;
+    // GET USER BOOKINGS
+    app.get("/bookings", async (req, res) => {
+      const email = req.query.email;
 
-  const query = {
-    user_email: email,
-  };
+      const query = {
+        user_email: email,
+      };
 
-  const result = await bookingsCollection
-    .find(query)
-    .toArray();
+      const result = await bookingsCollection.find(query).toArray();
 
-  res.send(result);
-});
+      res.send(result);
+    });
 
-// DELETE BOOKING
-app.delete("/bookings/:id", async (req, res) => {
-  const id = req.params.id;
+    // DELETE BOOKING
+    app.delete("/bookings/:id", async (req, res) => {
+      const id = req.params.id;
 
-  const query = {
-    _id: new ObjectId(id),
-  };
+      const query = {
+        _id: new ObjectId(id),
+      };
 
-  const result =
-    await bookingsCollection.deleteOne(query);
+      const result = await bookingsCollection.deleteOne(query);
 
-  res.send(result);
-});
-
-
-
+      res.send(result);
+    });
 
     app.get("/facilities", async (req, res) => {
       const result = await FacilitiesCollection.find().toArray();
       res.send(result);
     });
 
-    app.post("/facilities", verifyToken, async (req, res) => {
+    app.post("/facilities", async (req, res) => {
       const facility = req.body;
       // console.log(facility);
       const result = await FacilitiesCollection.insertOne(facility);
       res.send(result);
     });
 
-    app.get("/facilities/:id",verifyToken, async (req, res) => {
+    app.get("/facilities/:id", async (req, res) => {
       const { id } = req.params;
       const query = { _id: new ObjectId(id) };
       const result = await FacilitiesCollection.findOne(query);
       res.send(result);
     });
 
-    app.put("/facilities/:id", verifyToken, async (req, res) => {
+    app.put("/facilities/:id", async (req, res) => {
       const { id } = req.params;
       const updatedFacility = req.body;
 

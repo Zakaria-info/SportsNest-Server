@@ -26,7 +26,12 @@ const allowedOrigins = [
 //     credentials: true,
 //   }),
 // );
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://sports-nest-beta.vercel.app", 
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 const client = new MongoClient(uri, {
